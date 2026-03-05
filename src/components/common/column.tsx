@@ -1,6 +1,6 @@
 import type { Column as ColumnType } from "@/types/board";
-import { useBoardStore } from "@/store/boardStore";
-import TaskCard from "./TaskCard";
+import { useBoardStore } from "@/store/board-store";
+import TaskCard from "./task-card";
 
 type Props = {
   column: ColumnType;

@@ -1,4 +1,4 @@
-import { useBoardStore } from "@/store/boardStore";
+import { useBoardStore } from "@/store/board-store";
 import Column from "./Column";
 
 export default function Board() {
