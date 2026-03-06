@@ -1,5 +1,5 @@
 import { useBoardStore } from "@/store/board-store";
-import Column from "./Column";
+import Column from "./column";
 
 export default function Board() {
   const columnOrder = useBoardStore((state) => state.columnOrder);
