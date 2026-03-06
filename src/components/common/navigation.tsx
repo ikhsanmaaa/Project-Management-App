@@ -1,31 +1,28 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import Board from "./Board";
+import { NavLink } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import { NAV_ITEMS } from "@/constants/navigation-constants";
 
 export default function Navigation() {
   return (
-    <Tabs defaultValue="overview" className="w-full">
-      <TabsList>
-        <TabsTrigger value="overview">Overview</TabsTrigger>
-        <TabsTrigger value="board">Board</TabsTrigger>
-        <TabsTrigger value="list">List</TabsTrigger>
-        <TabsTrigger value="table">Table</TabsTrigger>
-        <TabsTrigger value="timeline">Timeline</TabsTrigger>
-      </TabsList>
-      <TabsContent value="overview">
-        Make changes to your account here.
-      </TabsContent>
-      <TabsContent value="board">
-        <Board />
-      </TabsContent>
-      <TabsContent value="list">Make changes to your account here.</TabsContent>
-      <TabsContent value="table">
-        Make changes to your account here.
-      </TabsContent>
-      <TabsContent value="timeline">
-        Make changes to your account here.
-      </TabsContent>
-
-      <TabsContent value="password">Change your password here.</TabsContent>
-    </Tabs>
+    <div className="border-b">
+      <nav className="flex gap-6 text-sm">
+        {NAV_ITEMS.map((item) => (
+          <NavLink
+            key={item.path}
+            to={item.path}
+            className={({ isActive }) =>
+              cn(
+                "pb-3 border-b-2 transition-colors",
+                isActive
+                  ? "border-white text-foreground font-medium"
+                  : "border-transparent text-white hover:text-foreground",
+              )
+            }
+          >
+            {item.label}
+          </NavLink>
+        ))}
+      </nav>
+    </div>
   );
 }

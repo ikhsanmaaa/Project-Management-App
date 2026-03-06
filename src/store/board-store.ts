@@ -1,9 +1,11 @@
 import type { BoardState, Task } from "@/types/board";
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 type BoardActions = {
   addTask: (columnId: string, title: string) => void;
   deleteTask: (taskId: string, columnId: string) => void;
+  updateTask: (taskId: string, updates: Partial<Task>) => void;
   moveTask: (
     sourceColumnId: string,
     destColumnId: string,
@@ -14,118 +16,144 @@ type BoardActions = {
 
 type BoardStore = BoardState & BoardActions;
 
-export const useBoardStore = create<BoardStore>((set, get) => ({
-  tasks: {},
-
-  columns: {
-    todo: {
-      id: "todo",
-      title: "Todo",
-      taskIds: [],
-    },
-    inprogress: {
-      id: "inprogress",
-      title: "In Progress",
-      taskIds: [],
-    },
-    done: {
-      id: "done",
-      title: "Done",
-      taskIds: [],
-    },
-  },
-
-  columnOrder: ["todo", "inprogress", "done"],
-
-  addTask: (columnId, title) => {
-    const id = crypto.randomUUID();
-
-    const newTask: Task = {
-      id,
-      title,
-      priority: "medium",
-      createdAt: new Date().toISOString(),
-    };
-
-    const column = get().columns[columnId];
-
-    set((state) => ({
-      tasks: {
-        ...state.tasks,
-        [id]: newTask,
-      },
+export const useBoardStore = create<BoardStore>()(
+  persist(
+    (set) => ({
+      tasks: {},
 
       columns: {
-        ...state.columns,
-        [columnId]: {
-          ...column,
-          taskIds: [...column.taskIds, id],
+        todo: {
+          id: "todo",
+          title: "Todo",
+          taskIds: [],
+        },
+        inProgress: {
+          id: "inProgress",
+          title: "In Progress",
+          taskIds: [],
+        },
+        done: {
+          id: "done",
+          title: "Done",
+          taskIds: [],
         },
       },
-    }));
-  },
 
-  deleteTask: (taskId, columnId) => {
-    const column = get().columns[columnId];
+      columnOrder: ["todo", "inProgress", "done"],
 
-    set((state) => {
-      const newTasks = { ...state.tasks };
-      delete newTasks[taskId];
+      addTask: (columnId, title) =>
+        set((state) => {
+          const column = state.columns[columnId];
+          if (!column) return state;
 
-      return {
-        tasks: newTasks,
+          const id = crypto.randomUUID();
 
-        columns: {
-          ...state.columns,
-          [columnId]: {
-            ...column,
-            taskIds: column.taskIds.filter((id) => id !== taskId),
-          },
-        },
-      };
-    });
-  },
+          const newTask: Task = {
+            id,
+            title,
+            priority: "medium",
+            createdAt: new Date().toISOString(),
+          };
 
-  moveTask: (sourceColumnId, destColumnId, sourceIndex, destIndex) => {
-    const state = get();
+          return {
+            tasks: {
+              ...state.tasks,
+              [id]: newTask,
+            },
 
-    const sourceColumn = state.columns[sourceColumnId];
-    const destColumn = state.columns[destColumnId];
+            columns: {
+              ...state.columns,
+              [columnId]: {
+                ...column,
+                taskIds: [...column.taskIds, id],
+              },
+            },
+          };
+        }),
 
-    const sourceTaskIds = [...sourceColumn.taskIds];
-    const [movedTask] = sourceTaskIds.splice(sourceIndex, 1);
+      deleteTask: (taskId, columnId) =>
+        set((state) => {
+          const column = state.columns[columnId];
+          if (!column) return state;
 
-    if (sourceColumnId === destColumnId) {
-      sourceTaskIds.splice(destIndex, 0, movedTask);
+          const newTasks = { ...state.tasks };
+          delete newTasks[taskId];
 
-      set({
-        columns: {
-          ...state.columns,
-          [sourceColumnId]: {
-            ...sourceColumn,
-            taskIds: sourceTaskIds,
-          },
-        },
-      });
+          return {
+            tasks: newTasks,
 
-      return;
-    }
+            columns: {
+              ...state.columns,
+              [columnId]: {
+                ...column,
+                taskIds: column.taskIds.filter((id) => id !== taskId),
+              },
+            },
+          };
+        }),
 
-    const destTaskIds = [...destColumn.taskIds];
-    destTaskIds.splice(destIndex, 0, movedTask);
+      updateTask: (taskId, updates) =>
+        set((state) => {
+          const task = state.tasks[taskId];
+          if (!task) return state;
 
-    set({
-      columns: {
-        ...state.columns,
-        [sourceColumnId]: {
-          ...sourceColumn,
-          taskIds: sourceTaskIds,
-        },
-        [destColumnId]: {
-          ...destColumn,
-          taskIds: destTaskIds,
-        },
-      },
-    });
-  },
-}));
+          return {
+            tasks: {
+              ...state.tasks,
+              [taskId]: {
+                ...task,
+                ...updates,
+              },
+            },
+          };
+        }),
+
+      moveTask: (sourceColumnId, destColumnId, sourceIndex, destIndex) =>
+        set((state) => {
+          const sourceColumn = state.columns[sourceColumnId];
+          const destColumn = state.columns[destColumnId];
+
+          if (!sourceColumn || !destColumn) return state;
+
+          const sourceTaskIds = [...sourceColumn.taskIds];
+          const [movedTask] = sourceTaskIds.splice(sourceIndex, 1);
+
+          if (!movedTask) return state;
+
+          if (sourceColumnId === destColumnId) {
+            sourceTaskIds.splice(destIndex, 0, movedTask);
+
+            return {
+              columns: {
+                ...state.columns,
+                [sourceColumnId]: {
+                  ...sourceColumn,
+                  taskIds: sourceTaskIds,
+                },
+              },
+            };
+          }
+
+          const destTaskIds = [...destColumn.taskIds];
+          destTaskIds.splice(destIndex, 0, movedTask);
+
+          return {
+            columns: {
+              ...state.columns,
+              [sourceColumnId]: {
+                ...sourceColumn,
+                taskIds: sourceTaskIds,
+              },
+              [destColumnId]: {
+                ...destColumn,
+                taskIds: destTaskIds,
+              },
+            },
+          };
+        }),
+    }),
+    {
+      name: "kanban-storage",
+    },
+  ),
+);
