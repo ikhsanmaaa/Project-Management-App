@@ -1,4 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useBoardStore } from "@/store/board-store";
+import type { CompletionData } from "@/types/overview";
 
 import {
   LineChart,
@@ -9,30 +11,42 @@ import {
   ResponsiveContainer,
   PieChart,
   Pie,
-  Cell,
 } from "recharts";
 
-const completionData = [
-  { day: "Mon", completed: 3 },
-  { day: "Tue", completed: 5 },
-  { day: "Wed", completed: 4 },
-  { day: "Thu", completed: 7 },
-  { day: "Fri", completed: 6 },
-];
-
-const statusData = [
-  { name: "Todo", value: 10 },
-  { name: "In Progress", value: 5 },
-  { name: "Done", value: 13 },
-];
-
-const COLORS = ["#6366f1", "#f59e0b", "#22c55e"];
-
 export default function Overview() {
+  const tasks = useBoardStore((state) => state.tasks);
+
+  const column = useBoardStore((state) => state.columns.todo);
+
+  const columnTask = column.taskIds.map((taskId) => tasks[taskId]);
+
+  const taskList = Object.values(tasks);
+
+  const completionData = taskList.reduce<CompletionData[]>((acc, task) => {
+    const day = new Date(task.createdAt).toLocaleDateString("en-US", {
+      weekday: "short",
+    });
+
+    const existing = acc.find((d) => d.day === day);
+
+    if (existing) {
+      existing.completed += 1;
+    } else {
+      acc.push({ day, completed: 1 });
+    }
+
+    return acc;
+  }, []);
+
+  const columns = useBoardStore((state) => state.columns);
+
+  const statusData = Object.values(columns).map((column) => ({
+    name: column.title,
+    value: column.taskIds.length,
+  }));
+
   return (
     <div className="space-y-8">
-      {/* ===== Stats Cards ===== */}
-
       <div className="grid gap-6 md:grid-cols-3">
         <Card>
           <CardHeader>
@@ -71,8 +85,6 @@ export default function Overview() {
         </Card>
       </div>
 
-      {/* ===== Completion Chart ===== */}
-
       <Card>
         <CardHeader>
           <CardTitle>Daily Task Completion</CardTitle>
@@ -95,17 +107,13 @@ export default function Overview() {
         </CardContent>
       </Card>
 
-      {/* ===== Bottom Section ===== */}
-
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Task Distribution */}
-
         <Card>
           <CardHeader>
             <CardTitle>Task Status Distribution</CardTitle>
           </CardHeader>
 
-          <CardContent className="h-[300px]">
+          <CardContent className="h-75">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -114,11 +122,7 @@ export default function Overview() {
                   nameKey="name"
                   outerRadius={100}
                   label
-                >
-                  {statusData.map((entry, index) => (
-                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
+                ></Pie>
 
                 <Tooltip />
               </PieChart>
@@ -126,33 +130,18 @@ export default function Overview() {
           </CardContent>
         </Card>
 
-        {/* Recent Activity */}
-
         <Card>
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
           </CardHeader>
 
           <CardContent className="space-y-4">
-            <div className="text-sm">
-              ✔ Task <span className="font-medium">Fix login bug</span>{" "}
-              completed
-            </div>
-
-            <div className="text-sm">
-              ✔ Task <span className="font-medium">Design landing page</span>{" "}
-              moved to progress
-            </div>
-
-            <div className="text-sm">
-              ✔ Task <span className="font-medium">Update API docs</span>{" "}
-              completed
-            </div>
-
-            <div className="text-sm">
-              ✔ Task <span className="font-medium">Setup CI pipeline</span>{" "}
-              created
-            </div>
+            {columnTask.map((task) => (
+              <div className="text-sm" key={task.id}>
+                ✔ Task <span className="font-medium">{task.title}</span>
+                {task.id}
+              </div>
+            ))}
           </CardContent>
         </Card>
       </div>
