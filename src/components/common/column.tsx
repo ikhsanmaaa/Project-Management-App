@@ -1,4 +1,4 @@
-import type { Column as ColumnType } from "@/types/board";
+import type { Column as ColumnType, TaskFormData } from "@/types/board";
 import { useBoardStore } from "@/store/board-store";
 import TaskCard from "./task-card";
 import { Button } from "../ui/button";
@@ -16,8 +16,8 @@ export default function Column({ column }: Props) {
 
   const addTask = useBoardStore((state) => state.addTask);
 
-  const handleAddTask = (data: { title: string; description: string }) => {
-    addTask(column.id, data.title);
+  const handleAddTask = (data: TaskFormData) => {
+    addTask(column.id, data);
     setOpen(false);
   };
 
@@ -41,7 +41,7 @@ export default function Column({ column }: Props) {
 
             if (!task) return null;
 
-            return <TaskCard key={task.id} task={task} />;
+            return <TaskCard key={task.id} task={task} column={column} />;
           })}
         </div>
       </div>

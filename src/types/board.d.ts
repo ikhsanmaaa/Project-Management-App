@@ -4,6 +4,14 @@ export type Task = {
   description?: string;
   priority: "low" | "medium" | "high";
   createdAt: string;
+  deadline: string;
+};
+
+type TaskFormData = {
+  title: string;
+  description: string;
+  priority: "low" | "medium" | "high";
+  deadline: Date;
 };
 
 export type Column = {

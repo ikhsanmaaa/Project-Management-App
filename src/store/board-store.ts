@@ -1,9 +1,9 @@
-import type { BoardState, Task } from "@/types/board";
+import type { BoardState, Task, TaskFormData } from "@/types/board";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 type BoardActions = {
-  addTask: (columnId: string, title: string) => void;
+  addTask: (columnId: string, data: TaskFormData) => void;
   deleteTask: (taskId: string, columnId: string) => void;
   updateTask: (taskId: string, updates: Partial<Task>) => void;
   moveTask: (
@@ -41,7 +41,7 @@ export const useBoardStore = create<BoardStore>()(
 
       columnOrder: ["todo", "inProgress", "done"],
 
-      addTask: (columnId, title) =>
+      addTask: (columnId, data) =>
         set((state) => {
           const column = state.columns[columnId];
           if (!column) return state;
@@ -50,9 +50,11 @@ export const useBoardStore = create<BoardStore>()(
 
           const newTask: Task = {
             id,
-            title,
-            priority: "medium",
+            title: data.title,
+            description: data.description,
+            priority: data.priority,
             createdAt: new Date().toISOString(),
+            deadline: data.deadline.toISOString(),
           };
 
           return {
