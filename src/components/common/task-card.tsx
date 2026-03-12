@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import type { Column, Task, TaskFormData } from "@/types/board";
+import type { Task, TaskFormData } from "@/types/board";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,17 +15,34 @@ import { DialogTask } from "./dialog-task";
 import { DialogDelete } from "./dialog-delete";
 import { format } from "date-fns";
 
+import { useDraggable } from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
+
 type Props = {
   task: Task;
-  column: Column;
+  columnId: string;
 };
 
-export default function TaskCard({ task, column }: Props) {
+export default function TaskCard({ task, columnId }: Props) {
   const [openUpdate, setOpenUpdate] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
 
+  const column = useBoardStore((state) => state.columns[columnId]);
+
   const updateTask = useBoardStore((state) => state.updateTask);
   const deleteTask = useBoardStore((state) => state.deleteTask);
+
+  const { attributes, listeners, setNodeRef, transform, isDragging } =
+    useDraggable({
+      id: task.id,
+      data: {
+        columnId,
+      },
+    });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+  };
 
   const handleUpdateTask = (data: TaskFormData) => {
     updateTask(task.id, {
@@ -34,14 +51,24 @@ export default function TaskCard({ task, column }: Props) {
     });
     setOpenUpdate(false);
   };
+
   const handleDeleteTask = () => {
     deleteTask(task.id, column.id);
     setOpenDelete(false);
   };
 
   const isOverdue = new Date(task.deadline) < new Date();
+
   return (
-    <Card className="cursor-pointer hover:shadow-md transition">
+    <Card
+      ref={setNodeRef}
+      style={style}
+      {...listeners}
+      {...attributes}
+      className={`cursor-grab hover:shadow-md transition ${
+        isDragging ? "opacity-50" : ""
+      }`}
+    >
       <CardContent className="p-4 space-y-3">
         <div className="flex items-center justify-between">
           <Badge
@@ -56,12 +83,14 @@ export default function TaskCard({ task, column }: Props) {
           >
             {task.priority}
           </Badge>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline">
                 <MoreHorizontalIcon />
               </Button>
             </DropdownMenuTrigger>
+
             <DropdownMenuContent>
               <DropdownMenuItem>
                 <Button
@@ -72,6 +101,7 @@ export default function TaskCard({ task, column }: Props) {
                   Update
                 </Button>
               </DropdownMenuItem>
+
               <DropdownMenuItem>
                 <Button
                   className="w-full"
@@ -92,17 +122,21 @@ export default function TaskCard({ task, column }: Props) {
         )}
 
         <p
-          className={`text-xs ${isOverdue ? "text-red-500" : "text-muted-foreground"}`}
+          className={`text-xs ${
+            isOverdue ? "text-red-500" : "text-muted-foreground"
+          }`}
         >
           {format(new Date(task.deadline), "dd MMM yyyy HH:mm")}
         </p>
       </CardContent>
+
       <DialogTask
         type="update"
         openDialog={openUpdate}
         handleSubmit={handleUpdateTask}
         onOpenDialog={setOpenUpdate}
       />
+
       <DialogDelete
         openDialog={openDelete}
         onOpenDialog={setOpenDelete}

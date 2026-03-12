@@ -51,7 +51,7 @@ export function DialogTask({
 
   return (
     <Dialog open={openDialog} onOpenChange={onOpenDialog}>
-      <DialogContent className="sm:max-w-[420px] p-5">
+      <DialogContent className="sm:max-w-105 p-5">
         <form
           className="space-y-4"
           onSubmit={(e) => {

@@ -8,12 +8,12 @@ import List from "./components/common/list";
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="sticky top-0 z-50 bg-slate-500 border-gray-800 max-w-7xl mx-auto px-8 py-4">
+    <div className="w-full min-h-screen bg-gray-100">
+      <div className="sticky bg-slate-500 border-gray-800  px-8 py-4">
         <Navigation />
       </div>
 
-      <div className="max-w-7xl mx-auto px-8 py-8 space-y-6">
+      <div className="max-w-7xl px-8 py-8 space-y-6">
         <Routes>
           <Route path="/" element={<Overview />} />
           <Route path="/board" element={<Board />} />

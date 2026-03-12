@@ -4,7 +4,7 @@ import { NAV_ITEMS } from "@/constants/navigation-constants";
 
 export default function Navigation() {
   return (
-    <div className="border-b">
+    <div className="w-full border-b">
       <nav className="flex gap-6 text-sm">
         {NAV_ITEMS.map((item) => (
           <NavLink

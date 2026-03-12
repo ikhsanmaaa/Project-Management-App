@@ -3,7 +3,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 type BoardActions = {
-  addTask: (columnId: string, data: TaskFormData) => void;
+  addTask: (data: TaskFormData) => void;
   deleteTask: (taskId: string, columnId: string) => void;
   updateTask: (taskId: string, updates: Partial<Task>) => void;
   moveTask: (
@@ -41,11 +41,8 @@ export const useBoardStore = create<BoardStore>()(
 
       columnOrder: ["todo", "inProgress", "done"],
 
-      addTask: (columnId, data) =>
+      addTask: (data) =>
         set((state) => {
-          const column = state.columns[columnId];
-          if (!column) return state;
-
           const id = crypto.randomUUID();
 
           const newTask: Task = {
@@ -65,9 +62,9 @@ export const useBoardStore = create<BoardStore>()(
 
             columns: {
               ...state.columns,
-              [columnId]: {
-                ...column,
-                taskIds: [...column.taskIds, id],
+              todo: {
+                ...state.columns.todo,
+                taskIds: [...state.columns.todo.taskIds, id],
               },
             },
           };
@@ -117,6 +114,10 @@ export const useBoardStore = create<BoardStore>()(
 
           if (!sourceColumn || !destColumn) return state;
 
+          if (sourceColumnId === destColumnId && sourceIndex === destIndex) {
+            return state;
+          }
+
           const sourceTaskIds = [...sourceColumn.taskIds];
           const [movedTask] = sourceTaskIds.splice(sourceIndex, 1);
 
@@ -142,10 +143,12 @@ export const useBoardStore = create<BoardStore>()(
           return {
             columns: {
               ...state.columns,
+
               [sourceColumnId]: {
                 ...sourceColumn,
                 taskIds: sourceTaskIds,
               },
+
               [destColumnId]: {
                 ...destColumn,
                 taskIds: destTaskIds,
