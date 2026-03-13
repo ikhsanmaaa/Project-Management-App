@@ -191,10 +191,16 @@ export function DialogTask({
 
           <DialogFooter className="pt-4">
             <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button variant="outline" className="cursor-pointer">
+                Cancel
+              </Button>
             </DialogClose>
 
-            <Button type="submit" disabled={!isFormValid}>
+            <Button
+              type="submit"
+              disabled={!isFormValid}
+              className="cursor-pointer"
+            >
               {type === "add" ? "Create Task" : "Save changes"}
             </Button>
           </DialogFooter>

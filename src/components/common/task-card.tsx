@@ -15,8 +15,9 @@ import { DialogTask } from "./dialog-task";
 import { DialogDelete } from "./dialog-delete";
 import { format } from "date-fns";
 
-import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+import { useSortable } from "@dnd-kit/sortable";
+import { cn } from "@/lib/utils";
 
 type Props = {
   task: Task;
@@ -32,16 +33,23 @@ export default function TaskCard({ task, columnId }: Props) {
   const updateTask = useBoardStore((state) => state.updateTask);
   const deleteTask = useBoardStore((state) => state.deleteTask);
 
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({
-      id: task.id,
-      data: {
-        columnId,
-      },
-    });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: task.id,
+    data: {
+      columnId,
+    },
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
+    transition,
   };
 
   const handleUpdateTask = (data: TaskFormData) => {
@@ -63,26 +71,42 @@ export default function TaskCard({ task, columnId }: Props) {
     <Card
       ref={setNodeRef}
       style={style}
-      {...listeners}
       {...attributes}
+      {...listeners}
       className={`cursor-grab hover:shadow-md transition ${
-        isDragging ? "opacity-50" : ""
+        isDragging ? "opacity-40" : ""
       }`}
     >
       <CardContent className="p-4 space-y-3">
         <div className="flex items-center justify-between">
           <Badge
             variant="secondary"
-            className={
+            className={cn(
+              "capitalize",
               task.priority === "low"
                 ? "bg-green-100 text-green-700"
                 : task.priority === "medium"
                   ? "bg-blue-100 text-blue-700"
-                  : "bg-red-100 text-red-700"
-            }
+                  : "bg-red-100 text-red-700",
+            )}
           >
             {task.priority}
           </Badge>
+
+          {columnId !== "todo" && (
+            <Badge
+              variant="secondary"
+              className={
+                columnId === "inProgress"
+                  ? "bg-amber-100 text-amber-700"
+                  : columnId === "done"
+                    ? "bg-lime-100 text-lime-700"
+                    : "bg-red-100 text-red-700"
+              }
+            >
+              {columnId}
+            </Badge>
+          )}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -115,7 +139,7 @@ export default function TaskCard({ task, columnId }: Props) {
           </DropdownMenu>
         </div>
 
-        <h3 className="font-medium text-sm">{task.title}</h3>
+        <h3 className="font-medium text-sm capitalize">{task.title}</h3>
 
         {task.description && (
           <p className="text-xs text-muted-foreground">{task.description}</p>

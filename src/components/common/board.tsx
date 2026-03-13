@@ -20,6 +20,7 @@ export default function Board() {
   const tasks = useBoardStore((state) => state.tasks);
   const addTask = useBoardStore((state) => state.addTask);
   const moveTask = useBoardStore((state) => state.moveTask);
+  const columns = useBoardStore((state) => state.columns);
 
   const [open, setOpen] = useState(false);
 
@@ -48,11 +49,17 @@ export default function Board() {
     }
 
     const sourceColumn = active.data.current?.columnId as string;
-    const destColumn = over.id as string;
+    const destColumn = over.data.current?.columnId ?? over.id;
 
-    if (!sourceColumn || !destColumn) return;
+    const sourceColumnData = columns[sourceColumn];
+    const destColumnData = columns[destColumn];
 
-    moveTask(sourceColumn, destColumn, 0, 0);
+    if (!sourceColumnData || !destColumnData) return;
+
+    const sourceIndex = sourceColumnData.taskIds.indexOf(active.id as string);
+    const destIndex = destColumnData.taskIds.indexOf(over.id as string);
+
+    moveTask(sourceColumn, destColumn, sourceIndex, destIndex);
 
     setActiveTaskId(null);
     setActiveColumnId(null);
@@ -67,7 +74,7 @@ export default function Board() {
 
         <Button
           onClick={() => setOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
+          className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
         >
           + Create Task
         </Button>

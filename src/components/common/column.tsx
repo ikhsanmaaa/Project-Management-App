@@ -1,4 +1,9 @@
 import { useDroppable } from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+
 import { useBoardStore } from "@/store/board-store";
 import TaskCard from "./task-card";
 
@@ -30,15 +35,19 @@ export default function Column({ columnId }: Props) {
           <span className="text-xs text-gray-400">{column.taskIds.length}</span>
         </div>
 
-        <div className="flex flex-col gap-3 min-h-25">
-          {column.taskIds.map((taskId) => {
-            const task = tasks[taskId];
+        <SortableContext
+          items={column.taskIds}
+          strategy={verticalListSortingStrategy}
+        >
+          <div className="flex flex-col gap-3 min-h-25">
+            {column.taskIds.map((taskId) => {
+              const task = tasks[taskId];
+              if (!task) return null;
 
-            if (!task) return null;
-
-            return <TaskCard key={task.id} task={task} columnId={columnId} />;
-          })}
-        </div>
+              return <TaskCard key={task.id} task={task} columnId={columnId} />;
+            })}
+          </div>
+        </SortableContext>
       </div>
     </div>
   );
