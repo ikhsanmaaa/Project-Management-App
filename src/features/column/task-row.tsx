@@ -1,15 +1,16 @@
 import type { Task } from "@/types/board";
+
+import { Calendar } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/utils/cn";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
-} from "../ui/card";
-import { Badge } from "../ui/badge";
-import { Calendar } from "lucide-react";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export default function TaskRow({ task }: { task: Task }) {
   return (

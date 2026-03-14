@@ -1,23 +1,23 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import type { Task, TaskFormData } from "@/types/board";
+import { MoreHorizontalIcon } from "lucide-react";
+import { useState } from "react";
+import { useBoardStore } from "@/store/board-store";
+import { format } from "date-fns";
+
+import { CSS } from "@dnd-kit/utilities";
+import { useSortable } from "@dnd-kit/sortable";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
-import { Button } from "../ui/button";
-import { MoreHorizontalIcon } from "lucide-react";
-import { useState } from "react";
-import { useBoardStore } from "@/store/board-store";
-import { DialogTask } from "./dialog-task";
-import { DialogDelete } from "./dialog-delete";
-import { format } from "date-fns";
-
-import { CSS } from "@dnd-kit/utilities";
-import { useSortable } from "@dnd-kit/sortable";
-import { cn } from "@/lib/utils";
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { DialogTask } from "@/components/common/dialog-task";
+import { DialogDelete } from "@/components/common/dialog-delete";
+import PriorityBadge from "@/components/common/priority-badge";
+import TaskBadge from "@/components/common/task-badge";
 
 type Props = {
   task: Task;
@@ -79,34 +79,9 @@ export default function TaskCard({ task, columnId }: Props) {
     >
       <CardContent className="p-4 space-y-3">
         <div className="flex items-center justify-between">
-          <Badge
-            variant="secondary"
-            className={cn(
-              "capitalize",
-              task.priority === "low"
-                ? "bg-green-100 text-green-700"
-                : task.priority === "medium"
-                  ? "bg-blue-100 text-blue-700"
-                  : "bg-red-100 text-red-700",
-            )}
-          >
-            {task.priority}
-          </Badge>
+          <PriorityBadge taskPriority={task.priority} />
 
-          {columnId !== "todo" && (
-            <Badge
-              variant="secondary"
-              className={
-                columnId === "inProgress"
-                  ? "bg-amber-100 text-amber-700"
-                  : columnId === "done"
-                    ? "bg-lime-100 text-lime-700"
-                    : "bg-red-100 text-red-700"
-              }
-            >
-              {columnId}
-            </Badge>
-          )}
+          {columnId !== "todo" && <TaskBadge columnId={columnId} />}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

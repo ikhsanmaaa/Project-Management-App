@@ -1,7 +1,12 @@
 import { useBoardStore } from "@/store/board-store";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import TaskRow from "./task-row";
-import EmptyState from "./empty-state-list";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../../components/ui/tabs";
+import EmptyState from "../../components/common/empty-state-list";
+import TaskRow from "../column/task-row";
 
 export default function List() {
   const columns = useBoardStore((state) => state.columns);

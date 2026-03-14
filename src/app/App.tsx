@@ -1,10 +1,9 @@
 import { Routes, Route } from "react-router-dom";
-import Navigation from "./components/common/navigation";
-import Overview from "./components/common/overview";
-import Board from "./components/common/board";
-import Timeline from "./components/common/timeline";
-import Table from "./components/common/table";
-import List from "./components/common/list";
+import Navigation from "../components/common/navigation";
+import Overview from "../features/overview/overview";
+import List from "../features/list/list";
+import Board from "@/features/boards/board";
+import { Timeline } from "@/features/timeline/timeline";
 
 function App() {
   return (
@@ -18,7 +17,6 @@ function App() {
           <Route path="/" element={<Overview />} />
           <Route path="/board" element={<Board />} />
           <Route path="/list" element={<List />} />
-          <Route path="/table" element={<Table />} />
           <Route path="/timeline" element={<Timeline />} />
         </Routes>
       </div>

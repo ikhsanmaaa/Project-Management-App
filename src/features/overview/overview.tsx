@@ -1,3 +1,5 @@
+import PriorityBadge from "@/components/common/priority-badge";
+import TaskBadge from "@/components/common/task-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useBoardStore } from "@/store/board-store";
 import type { CompletionData } from "@/types/overview";
@@ -16,33 +18,60 @@ import {
 export default function Overview() {
   const tasks = useBoardStore((state) => state.tasks);
 
-  const column = useBoardStore((state) => state.columns.todo);
+  const columns = useBoardStore((state) => state.columns);
 
-  const columnTask = column.taskIds.map((taskId) => tasks[taskId]);
+  const columnTodo = useBoardStore((state) => state.columns.todo);
+  const todoTask = columnTodo.taskIds.map((taskId) => tasks[taskId]);
+
+  const columninProgress = useBoardStore((state) => state.columns.inProgress);
+  const inProgressTask = columninProgress.taskIds.map(
+    (taskId) => tasks[taskId],
+  );
+
+  const columndone = useBoardStore((state) => state.columns.done);
+  const doneTaskList = columndone.taskIds.map((taskId) => tasks[taskId]);
 
   const taskList = Object.values(tasks);
 
-  const completionData = taskList.reduce<CompletionData[]>((acc, task) => {
-    const day = new Date(task.createdAt).toLocaleDateString("en-US", {
-      weekday: "short",
-    });
+  const completionData = doneTaskList
+    .filter((task) => task.completedAt)
+    .reduce<CompletionData[]>((acc, task) => {
+      const day = new Date(task.completedAt!).toLocaleDateString("en-US", {
+        weekday: "short",
+      });
 
-    const existing = acc.find((d) => d.day === day);
+      const existing = acc.find((d) => d.day === day);
 
-    if (existing) {
-      existing.completed += 1;
-    } else {
-      acc.push({ day, completed: 1 });
-    }
+      if (existing) {
+        existing.completed += 1;
+      } else {
+        acc.push({ day, completed: 1 });
+      }
 
-    return acc;
-  }, []);
+      return acc;
+    }, [])
+    .sort(
+      (a, b) =>
+        new Date(`2024 ${a.day}`).getDay() - new Date(`2024 ${b.day}`).getDay(),
+    );
 
-  const columns = useBoardStore((state) => state.columns);
+  const today = new Date().toLocaleDateString("en-US", {
+    weekday: "short",
+  });
+
+  const completedToday =
+    completionData.find((d) => d.day === today)?.completed || 0;
+
+  const COLORS: Record<string, string> = {
+    Todo: "#6366f1",
+    "In Progress": "#f59e0b",
+    Done: "#22c55e",
+  };
 
   const statusData = Object.values(columns).map((column) => ({
     name: column.title,
     value: column.taskIds.length,
+    fill: COLORS[column.title],
   }));
 
   return (
@@ -56,7 +85,7 @@ export default function Overview() {
           </CardHeader>
 
           <CardContent>
-            <p className="text-3xl font-bold">12</p>
+            <p className="text-3xl font-bold">{completedToday}</p>
           </CardContent>
         </Card>
 
@@ -68,7 +97,7 @@ export default function Overview() {
           </CardHeader>
 
           <CardContent>
-            <p className="text-3xl font-bold">5</p>
+            <p className="text-3xl font-bold">{inProgressTask.length}</p>
           </CardContent>
         </Card>
 
@@ -80,7 +109,7 @@ export default function Overview() {
           </CardHeader>
 
           <CardContent>
-            <p className="text-3xl font-bold">28</p>
+            <p className="text-3xl font-bold">{taskList.length}</p>
           </CardContent>
         </Card>
       </div>
@@ -122,7 +151,8 @@ export default function Overview() {
                   nameKey="name"
                   outerRadius={100}
                   label
-                ></Pie>
+                  fill="#8884d8"
+                />
 
                 <Tooltip />
               </PieChart>
@@ -136,10 +166,17 @@ export default function Overview() {
           </CardHeader>
 
           <CardContent className="space-y-4">
-            {columnTask.map((task) => (
-              <div className="text-sm" key={task.id}>
+            {todoTask.map((task) => (
+              <div className="text-sm flex gap-2" key={task.id}>
                 ✔ Task <span className="font-medium">{task.title}</span>
-                {task.id}
+                <span>
+                  <PriorityBadge taskPriority={task.priority} />
+                </span>
+                {columnTodo.id !== "todo" && (
+                  <span>
+                    <TaskBadge columnId={columnTodo.id} />
+                  </span>
+                )}
               </div>
             ))}
           </CardContent>

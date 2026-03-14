@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/cn";
 import { NAV_ITEMS } from "@/constants/navigation-constants";
 
 export default function Navigation() {

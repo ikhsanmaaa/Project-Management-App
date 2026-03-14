@@ -7,13 +7,13 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 
-import Column from "./column";
-import TaskCard from "./task-card";
-import { DialogTask } from "./dialog-task";
 import { Button } from "@/components/ui/button";
 
 import { useBoardStore } from "@/store/board-store";
 import type { TaskFormData } from "@/types/board";
+import Column from "../column/column";
+import TaskCard from "../column/task-card";
+import { DialogTask } from "@/components/common/dialog-task";
 
 export default function Board() {
   const columnOrder = useBoardStore((state) => state.columnOrder);
@@ -60,7 +60,11 @@ export default function Board() {
     const destIndex = destColumnData.taskIds.indexOf(over.id as string);
 
     moveTask(sourceColumn, destColumn, sourceIndex, destIndex);
-
+    if (destColumn === "done") {
+      useBoardStore.getState().updateTask(active.id as string, {
+        completedAt: new Date().toISOString(),
+      });
+    }
     setActiveTaskId(null);
     setActiveColumnId(null);
   };

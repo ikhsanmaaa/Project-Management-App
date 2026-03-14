@@ -4,6 +4,7 @@ export type Task = {
   description?: string;
   priority: "low" | "medium" | "high";
   createdAt: string;
+  completedAt?: string;
   deadline: string;
 };
 
