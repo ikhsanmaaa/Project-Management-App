@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   DndContext,
   closestCenter,
@@ -14,9 +14,12 @@ import type { TaskFormData } from "@/types/board";
 import Column from "../column/column";
 import TaskCard from "../column/task-card";
 import { DialogTask } from "@/components/common/dialog-task";
+import DialogColumnDone from "@/components/common/dialog-column-done";
+import { isBefore, parseISO } from "date-fns";
 
 export default function Board() {
   const columnOrder = useBoardStore((state) => state.columnOrder);
+
   const tasks = useBoardStore((state) => state.tasks);
   const addTask = useBoardStore((state) => state.addTask);
   const moveTask = useBoardStore((state) => state.moveTask);
@@ -26,6 +29,15 @@ export default function Board() {
 
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const [activeColumnId, setActiveColumnId] = useState<string | null>(null);
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingMove, setPendingMove] = useState<{
+    taskId: string;
+    sourceColumn: string;
+    destColumn: string;
+    sourceIndex: number;
+    destIndex: number;
+  } | null>(null);
 
   const handleCreateTask = (data: TaskFormData) => {
     addTask(data);
@@ -54,22 +66,76 @@ export default function Board() {
     const sourceColumnData = columns[sourceColumn];
     const destColumnData = columns[destColumn];
 
-    if (!sourceColumnData || !destColumnData) return;
+    if (!sourceColumnData || !destColumnData || destColumn === "expired")
+      return;
 
     const sourceIndex = sourceColumnData.taskIds.indexOf(active.id as string);
     const destIndex = destColumnData.taskIds.indexOf(over.id as string);
 
-    moveTask(sourceColumn, destColumn, sourceIndex, destIndex);
     if (destColumn === "done") {
-      useBoardStore.getState().updateTask(active.id as string, {
-        completedAt: new Date().toISOString(),
+      setPendingMove({
+        taskId: active.id as string,
+        sourceColumn,
+        destColumn,
+        sourceIndex,
+        destIndex,
       });
+
+      setConfirmOpen(true);
+    } else {
+      moveTask(sourceColumn, destColumn, sourceIndex, destIndex);
     }
+
     setActiveTaskId(null);
     setActiveColumnId(null);
   };
 
   const activeTask = activeTaskId ? tasks[activeTaskId] : null;
+
+  const handleConfirmDone = () => {
+    if (!pendingMove) return;
+
+    moveTask(
+      pendingMove.sourceColumn,
+      pendingMove.destColumn,
+      pendingMove.sourceIndex,
+      pendingMove.destIndex,
+    );
+
+    useBoardStore.getState().updateTask(pendingMove.taskId, {
+      completedAt: new Date().toISOString(),
+    });
+
+    setPendingMove(null);
+    setConfirmOpen(false);
+  };
+
+  const handleCancelDone = () => {
+    setPendingMove(null);
+    setConfirmOpen(false);
+  };
+
+  useEffect(() => {
+    const today = new Date();
+
+    Object.values(tasks).forEach((task) => {
+      const deadline = parseISO(task.deadline);
+
+      if (isBefore(deadline, today)) {
+        const currentColumn = Object.values(columns).find((col) =>
+          col.taskIds.includes(task.id),
+        );
+
+        if (!currentColumn) return;
+
+        if (currentColumn.id !== "expired" && currentColumn.id !== "done") {
+          const sourceIndex = currentColumn.taskIds.indexOf(task.id);
+
+          moveTask(currentColumn.id, "expired", sourceIndex, 0);
+        }
+      }
+    });
+  }, [tasks, columns, moveTask]);
 
   return (
     <div className="space-y-6">
@@ -89,7 +155,7 @@ export default function Board() {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex gap-6 overflow-x-auto pb-4">
+        <div className="flex gap-4 overflow-x-auto pb-4">
           {columnOrder.map((columnId) => (
             <Column key={columnId} columnId={columnId} />
           ))}
@@ -107,6 +173,13 @@ export default function Board() {
         openDialog={open}
         handleSubmit={handleCreateTask}
         onOpenDialog={setOpen}
+      />
+
+      <DialogColumnDone
+        setConfirmOpen={setConfirmOpen}
+        confirmOpen={confirmOpen}
+        handleCancelDone={handleCancelDone}
+        handleConfirmDone={handleConfirmDone}
       />
     </div>
   );

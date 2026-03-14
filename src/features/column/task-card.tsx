@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import type { Task, TaskFormData } from "@/types/board";
-import { MoreHorizontalIcon } from "lucide-react";
+import { Ban, CheckCircle, MoreHorizontalIcon } from "lucide-react";
 import { useState } from "react";
 import { useBoardStore } from "@/store/board-store";
 import { format } from "date-fns";
@@ -18,6 +18,7 @@ import { DialogTask } from "@/components/common/dialog-task";
 import { DialogDelete } from "@/components/common/dialog-delete";
 import PriorityBadge from "@/components/common/priority-badge";
 import TaskBadge from "@/components/common/task-badge";
+import { cn } from "@/utils/cn";
 
 type Props = {
   task: Task;
@@ -33,6 +34,8 @@ export default function TaskCard({ task, columnId }: Props) {
   const updateTask = useBoardStore((state) => state.updateTask);
   const deleteTask = useBoardStore((state) => state.deleteTask);
 
+  const isDone = columnId === "done";
+  const isExpired = columnId === "expired";
   const {
     attributes,
     listeners,
@@ -45,6 +48,7 @@ export default function TaskCard({ task, columnId }: Props) {
     data: {
       columnId,
     },
+    disabled: isDone || isExpired,
   });
 
   const style = {
@@ -73,15 +77,30 @@ export default function TaskCard({ task, columnId }: Props) {
       style={style}
       {...attributes}
       {...listeners}
-      className={`cursor-grab hover:shadow-md transition ${
-        isDragging ? "opacity-40" : ""
-      }`}
+      className={cn(
+        "cursor-grab hover:shadow-md transition",
+        isDragging ? "opacity-40" : "",
+        isDone && " cursor-default",
+        isExpired && "bg-gray-200 cursor-default",
+      )}
     >
       <CardContent className="p-4 space-y-3">
         <div className="flex items-center justify-between">
           <PriorityBadge taskPriority={task.priority} />
 
-          {columnId !== "todo" && <TaskBadge columnId={columnId} />}
+          {columnId === "inProgress" ? (
+            <TaskBadge columnId={columnId} />
+          ) : columnId === "done" ? (
+            <div className="flex space-x-0.5">
+              <CheckCircle className="text-green-500 w-4 h-4" />
+              <p className="text-xs text-muted-foreground">Finished</p>
+            </div>
+          ) : columnId === "expired" ? (
+            <div className="flex space-x-0.5">
+              <Ban className="text-red-500 w-4 h-4" />
+              <p className="text-xs text-muted-foreground">Expired</p>
+            </div>
+          ) : null}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -96,6 +115,7 @@ export default function TaskCard({ task, columnId }: Props) {
                   className="w-full"
                   variant="secondary"
                   onClick={() => setOpenUpdate(true)}
+                  disabled={isDone}
                 >
                   Update
                 </Button>
@@ -122,11 +142,18 @@ export default function TaskCard({ task, columnId }: Props) {
 
         <p
           className={`text-xs ${
-            isOverdue ? "text-red-500" : "text-muted-foreground"
+            isOverdue && !isDone ? "text-red-500" : "text-muted-foreground"
           }`}
         >
           {format(new Date(task.deadline), "dd MMM yyyy HH:mm")}
         </p>
+
+        {isDone && task.completedAt && (
+          <p className="text-xs text-green-700">
+            Finished at:{" "}
+            {format(new Date(task.completedAt), "dd MMM yyyy HH:mm")}
+          </p>
+        )}
       </CardContent>
 
       <DialogTask

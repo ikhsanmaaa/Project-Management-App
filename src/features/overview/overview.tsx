@@ -1,6 +1,14 @@
 import PriorityBadge from "@/components/common/priority-badge";
 import TaskBadge from "@/components/common/task-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useBoardStore } from "@/store/board-store";
 import type { CompletionData } from "@/types/overview";
 
@@ -20,9 +28,6 @@ export default function Overview() {
 
   const columns = useBoardStore((state) => state.columns);
 
-  const columnTodo = useBoardStore((state) => state.columns.todo);
-  const todoTask = columnTodo.taskIds.map((taskId) => tasks[taskId]);
-
   const columninProgress = useBoardStore((state) => state.columns.inProgress);
   const inProgressTask = columninProgress.taskIds.map(
     (taskId) => tasks[taskId],
@@ -32,6 +37,16 @@ export default function Overview() {
   const doneTaskList = columndone.taskIds.map((taskId) => tasks[taskId]);
 
   const taskList = Object.values(tasks);
+
+  const taskColumnMap = Object.values(columns).reduce(
+    (acc, column) => {
+      column.taskIds.forEach((taskId) => {
+        acc[taskId] = column.id;
+      });
+      return acc;
+    },
+    {} as Record<string, string>,
+  );
 
   const completionData = doneTaskList
     .filter((task) => task.completedAt)
@@ -165,20 +180,34 @@ export default function Overview() {
             <CardTitle>Recent Activity</CardTitle>
           </CardHeader>
 
-          <CardContent className="space-y-4">
-            {todoTask.map((task) => (
-              <div className="text-sm flex gap-2" key={task.id}>
-                ✔ Task <span className="font-medium">{task.title}</span>
-                <span>
-                  <PriorityBadge taskPriority={task.priority} />
-                </span>
-                {columnTodo.id !== "todo" && (
-                  <span>
-                    <TaskBadge columnId={columnTodo.id} />
-                  </span>
-                )}
-              </div>
-            ))}
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Task</TableHead>
+                  <TableHead>Priority</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {taskList.map((task) => (
+                  <TableRow key={task.id}>
+                    <TableCell className="font-medium">{task.title}</TableCell>
+
+                    <TableCell>
+                      <PriorityBadge taskPriority={task.priority} />
+                    </TableCell>
+
+                    <TableCell>
+                      {taskColumnMap[task.id] !== "todo" && (
+                        <TaskBadge columnId={taskColumnMap[task.id]} />
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       </div>

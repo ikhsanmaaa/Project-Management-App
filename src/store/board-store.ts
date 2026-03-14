@@ -37,9 +37,14 @@ export const useBoardStore = create<BoardStore>()(
           title: "Done",
           taskIds: [],
         },
+        expired: {
+          id: "expired",
+          title: "Expired",
+          taskIds: [],
+        },
       },
 
-      columnOrder: ["todo", "inProgress", "done"],
+      columnOrder: ["todo", "inProgress", "done", "expired"],
 
       addTask: (data) =>
         set((state) => {

@@ -15,6 +15,7 @@ export default function List() {
   const todoTasks = columns.todo.taskIds.map((id) => tasks[id]);
   const progressTasks = columns.inProgress.taskIds.map((id) => tasks[id]);
   const doneTasks = columns.done.taskIds.map((id) => tasks[id]);
+  const expiredTasks = columns.expired.taskIds.map((id) => tasks[id]);
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-6 space-y-6">
@@ -39,6 +40,10 @@ export default function List() {
           <TabsTrigger value="done" className="cursor-pointer">
             Done ({doneTasks.length})
           </TabsTrigger>
+
+          <TabsTrigger value="expired" className="cursor-pointer">
+            Expired ({expiredTasks.length})
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="todo" className="flex flex-col gap-4 mt-6">
@@ -60,6 +65,14 @@ export default function List() {
         <TabsContent value="done" className="flex flex-col gap-4 mt-6">
           {doneTasks.length > 0 ? (
             doneTasks.map((task) => <TaskRow key={task.id} task={task} />)
+          ) : (
+            <EmptyState />
+          )}
+        </TabsContent>
+
+        <TabsContent value="expired" className="flex flex-col gap-4 mt-6">
+          {expiredTasks.length > 0 ? (
+            expiredTasks.map((task) => <TaskRow key={task.id} task={task} />)
           ) : (
             <EmptyState />
           )}
