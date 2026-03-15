@@ -104,7 +104,7 @@ export default function TaskCard({ task, columnId }: Props) {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline">
+              <Button variant="outline" className="cursor-pointer">
                 <MoreHorizontalIcon />
               </Button>
             </DropdownMenuTrigger>
@@ -112,7 +112,7 @@ export default function TaskCard({ task, columnId }: Props) {
             <DropdownMenuContent>
               <DropdownMenuItem>
                 <Button
-                  className="w-full"
+                  className="w-full cursor-pointer"
                   variant="secondary"
                   onClick={() => setOpenUpdate(true)}
                   disabled={isDone}
@@ -123,7 +123,7 @@ export default function TaskCard({ task, columnId }: Props) {
 
               <DropdownMenuItem>
                 <Button
-                  className="w-full"
+                  className="w-full cursor-pointer"
                   variant="destructive"
                   onClick={() => setOpenDelete(true)}
                 >
@@ -150,7 +150,7 @@ export default function TaskCard({ task, columnId }: Props) {
 
         {isDone && task.completedAt && (
           <p className="text-xs text-green-700">
-            Finished at:{" "}
+            Completed at:{" "}
             {format(new Date(task.completedAt), "dd MMM yyyy HH:mm")}
           </p>
         )}

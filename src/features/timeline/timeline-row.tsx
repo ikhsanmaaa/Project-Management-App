@@ -15,6 +15,8 @@ export function TimelineRow({ task, timelineStart, days }: Props) {
   const today = new Date();
   const isExpired = end < today;
 
+  const isDone = !!task.completedAt;
+
   let offset = differenceInDays(start, timelineStart);
   let duration = differenceInDays(end, start) + 1;
 
@@ -35,12 +37,19 @@ export function TimelineRow({ task, timelineStart, days }: Props) {
       style={{
         gridTemplateColumns: `220px repeat(${days}, minmax(60px,1fr))`,
       }}
-      title={isExpired ? "Task is expired" : undefined}
+      title={
+        isExpired
+          ? "Task is expired"
+          : isDone
+            ? "Task is Completed"
+            : "On going task"
+      }
     >
       <div
         className={cn(
           "p-3 border-r text-sm capitalize",
           isExpired ? "text-red-600" : "",
+          isDone ? "text-green-700" : "",
         )}
       >
         {task.title}
@@ -51,7 +60,10 @@ export function TimelineRow({ task, timelineStart, days }: Props) {
       ))}
 
       <div
-        className={cn("h-6 rounded", isExpired ? "bg-red-500" : "bg-blue-500")}
+        className={cn(
+          "h-6 rounded",
+          isExpired ? "bg-red-500" : isDone ? "bg-green-700" : "bg-blue-500",
+        )}
         style={{
           gridColumn: `span ${duration}`,
         }}

@@ -1,5 +1,4 @@
-import PriorityBadge from "@/components/common/priority-badge";
-import TaskBadge from "@/components/common/task-badge";
+import ActivityBadge from "@/components/common/activity-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -11,6 +10,7 @@ import {
 } from "@/components/ui/table";
 import { useBoardStore } from "@/store/board-store";
 import type { CompletionData } from "@/types/overview";
+import { formatDistanceToNow } from "date-fns";
 
 import {
   LineChart,
@@ -38,15 +38,8 @@ export default function Overview() {
 
   const taskList = Object.values(tasks);
 
-  const taskColumnMap = Object.values(columns).reduce(
-    (acc, column) => {
-      column.taskIds.forEach((taskId) => {
-        acc[taskId] = column.id;
-      });
-      return acc;
-    },
-    {} as Record<string, string>,
-  );
+  const activities = useBoardStore((state) => state.activities);
+  const recentActivities = activities.slice(0, 6);
 
   const completionData = doneTaskList
     .filter((task) => task.completedAt)
@@ -185,24 +178,26 @@ export default function Overview() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Task</TableHead>
-                  <TableHead>Priority</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Action</TableHead>
+                  <TableHead className="text-right">Time</TableHead>
                 </TableRow>
               </TableHeader>
 
               <TableBody>
-                {taskList.map((task) => (
-                  <TableRow key={task.id}>
-                    <TableCell className="font-medium">{task.title}</TableCell>
-
-                    <TableCell>
-                      <PriorityBadge taskPriority={task.priority} />
+                {recentActivities.map((activity) => (
+                  <TableRow key={activity.id}>
+                    <TableCell className="font-medium">
+                      {activity.taskTitle}
                     </TableCell>
 
                     <TableCell>
-                      {taskColumnMap[task.id] !== "todo" && (
-                        <TaskBadge columnId={taskColumnMap[task.id]} />
-                      )}
+                      <ActivityBadge type={activity.type} />
+                    </TableCell>
+
+                    <TableCell className="text-right text-muted-foreground">
+                      {formatDistanceToNow(new Date(activity.createdAt), {
+                        addSuffix: true,
+                      })}
                     </TableCell>
                   </TableRow>
                 ))}

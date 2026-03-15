@@ -1,3 +1,4 @@
+import type { Activity } from "@/types/activity";
 import type { BoardState, Task, TaskFormData } from "@/types/board";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
@@ -20,6 +21,8 @@ export const useBoardStore = create<BoardStore>()(
   persist(
     (set) => ({
       tasks: {},
+
+      activities: [],
 
       columns: {
         todo: {
@@ -59,11 +62,20 @@ export const useBoardStore = create<BoardStore>()(
             deadline: data.deadline.toISOString(),
           };
 
+          const activity: Activity = {
+            id: crypto.randomUUID(),
+            taskId: id,
+            taskTitle: newTask.title,
+            type: "created",
+            createdAt: new Date().toISOString(),
+          };
           return {
             tasks: {
               ...state.tasks,
               [id]: newTask,
             },
+
+            activities: [activity, ...state.activities].slice(0, 50),
 
             columns: {
               ...state.columns,
@@ -80,11 +92,24 @@ export const useBoardStore = create<BoardStore>()(
           const column = state.columns[columnId];
           if (!column) return state;
 
+          const task = state.tasks[taskId];
+          if (!task) return state;
+
           const newTasks = { ...state.tasks };
           delete newTasks[taskId];
 
+          const activity: Activity = {
+            id: crypto.randomUUID(),
+            taskId,
+            taskTitle: task.title,
+            type: "deleted",
+            createdAt: new Date().toISOString(),
+          };
+
           return {
             tasks: newTasks,
+
+            activities: [activity, ...state.activities].slice(0, 50),
 
             columns: {
               ...state.columns,
@@ -125,6 +150,22 @@ export const useBoardStore = create<BoardStore>()(
 
           const sourceTaskIds = [...sourceColumn.taskIds];
           const [movedTask] = sourceTaskIds.splice(sourceIndex, 1);
+          const task = state.tasks[movedTask];
+
+          const activity: Activity = {
+            id: crypto.randomUUID(),
+            taskId: movedTask,
+            taskTitle: task.title,
+            type:
+              destColumnId === "done"
+                ? "completed"
+                : destColumnId === "inProgress"
+                  ? "in progress"
+                  : destColumnId === "expired"
+                    ? "expired"
+                    : "moved",
+            createdAt: new Date().toISOString(),
+          };
 
           if (!movedTask) return state;
 
@@ -146,6 +187,8 @@ export const useBoardStore = create<BoardStore>()(
           destTaskIds.splice(destIndex, 0, movedTask);
 
           return {
+            activities: [activity, ...state.activities].slice(0, 50),
+
             columns: {
               ...state.columns,
 

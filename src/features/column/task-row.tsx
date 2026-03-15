@@ -39,9 +39,17 @@ export default function TaskRow({ task }: { task: Task }) {
           {task.priority}
         </Badge>
 
-        <div className="flex items-center gap-1">
-          <Calendar size={14} />
-          <span>{format(new Date(task.deadline), "dd MMM yyyy HH:mm")}</span>
+        <div className="flex flex-col  gap-1">
+          <div className="flex">
+            <Calendar size={14} />
+            <span>{format(new Date(task.deadline), "dd MMM yyyy HH:mm")}</span>
+          </div>
+          {task.completedAt && (
+            <span className="text-sm text-green-700">
+              Completed at:
+              {format(new Date(task.completedAt), "dd MMM yyyy HH:mm")}
+            </span>
+          )}
         </div>
       </CardContent>
     </Card>

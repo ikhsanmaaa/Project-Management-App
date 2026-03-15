@@ -1,3 +1,5 @@
+import type { Activity } from "./activity";
+
 export type Task = {
   id: string;
   title: string;
@@ -25,4 +27,5 @@ export type BoardState = {
   tasks: Record<string, Task>;
   columns: Record<string, Column>;
   columnOrder: string[];
+  activities: Activity[];
 };

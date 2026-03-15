@@ -7,7 +7,7 @@ type Props = {
 export function TimelineHeader({ dates }: Props) {
   return (
     <div
-      className="grid border-b"
+      className="grid border"
       style={{
         gridTemplateColumns: `220px repeat(${dates.length}, minmax(60px,1fr))`,
       }}
